@@ -13,7 +13,7 @@ public class Solution {
     private Long id;
     private String solutionUrl;
     private String name;
-    private String cheepest;
+    private String cheapest;
     public Solution() {
 
     }
@@ -46,11 +46,11 @@ public class Solution {
         this.name = name;
     }
 
-    public String getCheepest() {
-        return cheepest;
+    public String getCheapest() {
+        return cheapest;
     }
 
-    public void setCheepest(String cheepest) {
-        this.cheepest = cheepest;
+    public void setCheapest(String cheapest) {
+        this.cheapest = cheapest;
     }
 }

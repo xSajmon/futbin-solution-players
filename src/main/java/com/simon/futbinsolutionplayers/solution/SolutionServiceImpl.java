@@ -37,8 +37,7 @@ public class SolutionServiceImpl implements SolutionService {
     }
 
 
-    public List<String> extractLinksToTheCheapestSbc(){
-        List<String> links = new ArrayList<>();
+    public void extractLinksToTheCheapestSbc(){
         getSolutions().forEach(solution -> {
             try {
                 Document document = Jsoup.connect(solution.getSolutionUrl())
@@ -46,20 +45,20 @@ public class SolutionServiceImpl implements SolutionService {
                         .get();
                 Elements cheapestSquad = document.select(".thead_des + tr");
                 String cheapestSquadUrl = cheapestSquad.select(".squad_url").attr("href");
-                links.add(FUTBIN + cheapestSquadUrl);
+                solution.setCheapest(FUTBIN + cheapestSquadUrl);
+                repository.save(solution);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
-        return links;
     }
 
-
-    @Scheduled(fixedRate = 30000)
-    public void getNonRarePlayers(){
-        extractLinksToTheCheapestSbc().forEach( link -> {
+    private Map<String, List<Player>> getNonRarePlayers(){
+        extractLinksToTheCheapestSbc();
+        Map<String, List<Player>> solutionMap = new TreeMap<>();
+        getSolutions().forEach( solution -> {
             try {
-                Document document = Jsoup.connect(link)
+                Document document = Jsoup.connect(solution.getCheapest())
                         .userAgent("Mozilla/5.0")
                         .get();
                 Elements allPlayers = document.select("div[id~=^cardlid[0-9]+[0-1]*]")
@@ -68,16 +67,33 @@ public class SolutionServiceImpl implements SolutionService {
                 List<Player> players = allPlayers.stream().map(element -> new Player(element.attr("data-player-commom"),
                                getDetailByClassName(Type.class, element.className()), getDetailByClassName(Rarity.class, element.className())))
                         .collect(Collectors.toList());
-                players.forEach(System.out::println);
+                solutionMap.put(solution.getName(), players);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
+        return solutionMap;
     }
 
     private <E extends Enum<E> & Detail> E getDetailByClassName(Class<E> aEnum, String className){
         List<String> classes = List.of(className.trim().split("\\s+"));
         Optional<E> detailName = Stream.of(aEnum.getEnumConstants()).filter(detail -> classes.contains(detail.getName())).findFirst();
         return detailName.get();
+    }
+
+
+    private void displayResult(){
+        getNonRarePlayers().forEach((k, v) -> {
+            System.out.println("****************");
+            System.out.printf("%s\n", k);
+            System.out.println("****************");
+            v.forEach(System.out::println);
+            System.out.println();
+
+        });
+    }
+    @Scheduled(fixedRate = 60000)
+    public void scrapData(){
+        displayResult();
     }
 }
