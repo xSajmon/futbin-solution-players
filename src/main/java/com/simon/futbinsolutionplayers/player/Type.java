@@ -1,11 +1,6 @@
 package com.simon.futbinsolutionplayers.player;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-public enum Type {
+public enum Type implements Detail {
     GOLD("gold"), SILVER("silver"), BRONZE("bronze");
 
     String type;
@@ -15,7 +10,7 @@ public enum Type {
         this.type = type;
     }
 
-    public String getType() {
+    public String getName() {
         return type;
     }
 

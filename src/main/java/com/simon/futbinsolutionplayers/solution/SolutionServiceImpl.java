@@ -1,5 +1,6 @@
 package com.simon.futbinsolutionplayers.solution;
 
+import com.simon.futbinsolutionplayers.player.Detail;
 import com.simon.futbinsolutionplayers.player.Player;
 import com.simon.futbinsolutionplayers.player.Rarity;
 import com.simon.futbinsolutionplayers.player.Type;
@@ -65,7 +66,7 @@ public class SolutionServiceImpl implements SolutionService {
                         .select("a.get-tp > div")
                         .select("[data-rare=0]").empty();
                 List<Player> players = allPlayers.stream().map(element -> new Player(element.attr("data-player-commom"),
-                                getTypeByClassName(element.className()), getRarityByClassName(element.className())))
+                               getDetailByClassName(Type.class, element.className()), getDetailByClassName(Rarity.class, element.className())))
                         .collect(Collectors.toList());
                 players.forEach(System.out::println);
             } catch (IOException e) {
@@ -74,17 +75,9 @@ public class SolutionServiceImpl implements SolutionService {
         });
     }
 
-
-
-    private Type getTypeByClassName(String className){
+    private <E extends Enum<E> & Detail> E getDetailByClassName(Class<E> aEnum, String className){
         List<String> classes = List.of(className.trim().split("\\s+"));
-        Optional<Type> typeName = Stream.of(Type.values()).filter(type -> classes.contains(type.getType())).findFirst();
-        return typeName.get();
-    }
-
-    private Rarity getRarityByClassName(String className){
-        List<String> classes = List.of(className.trim().split("\\s+"));
-        Optional<Rarity> typeName = Stream.of(Rarity.values()).filter(type -> classes.contains(type.getRarity())).findFirst();
-        return typeName.get();
+        Optional<E> detailName = Stream.of(aEnum.getEnumConstants()).filter(detail -> classes.contains(detail.getName())).findFirst();
+        return detailName.get();
     }
 }

@@ -38,6 +38,6 @@ public class Player {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", name, type.getType(), rarity.getRarity());
+        return String.format("%s %s %s", name, type.getName(), rarity.getName());
     }
 }

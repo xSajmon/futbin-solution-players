@@ -1,6 +1,6 @@
 package com.simon.futbinsolutionplayers.player;
 
-public enum Rarity {
+public enum Rarity implements Detail {
     RARE("rare"), NONRARE("non-rare");
 
     String rarity;
@@ -9,7 +9,7 @@ public enum Rarity {
         this.rarity = rarity;
     }
 
-    public String getRarity() {
+    public String getName() {
         return rarity;
     }
 
