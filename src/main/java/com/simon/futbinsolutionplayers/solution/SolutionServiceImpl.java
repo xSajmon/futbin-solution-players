@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SolutionServiceImpl implements SolutionService {
@@ -57,12 +58,9 @@ public class SolutionServiceImpl implements SolutionService {
                         .get();
                 Elements allPlayers = document.select("div[id~=^cardlid[0-9]+[0-1]*]")
                         .select("a.get-tp > div")
-                        .select("[data-rare=0]");
-                List<String> names = new ArrayList<>();
-                allPlayers.forEach(element -> {
-                    element.select("*").remove();
-                    names.add(element.attr("data-player-commom"));
-                });
+                        .select("[data-rare=0]").empty();
+                List<String> names = allPlayers.stream().map(element -> element.attr("data-player-commom"))
+                                .collect(Collectors.toList());
                 System.out.println(names);
             } catch (IOException e) {
                 e.printStackTrace();
