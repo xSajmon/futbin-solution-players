@@ -1,5 +1,8 @@
 package com.simon.futbinsolutionplayers.solution;
 
+import com.simon.futbinsolutionplayers.player.Player;
+import com.simon.futbinsolutionplayers.player.Rarity;
+import com.simon.futbinsolutionplayers.player.Type;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -9,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 @Service
 public class SolutionServiceImpl implements SolutionService {
@@ -49,7 +54,7 @@ public class SolutionServiceImpl implements SolutionService {
     }
 
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 30000)
     public void getNonRarePlayers(){
         extractLinksToTheCheapestSbc().forEach( link -> {
             try {
@@ -59,13 +64,27 @@ public class SolutionServiceImpl implements SolutionService {
                 Elements allPlayers = document.select("div[id~=^cardlid[0-9]+[0-1]*]")
                         .select("a.get-tp > div")
                         .select("[data-rare=0]").empty();
-                List<String> names = allPlayers.stream().map(element -> element.attr("data-player-commom"))
-                                .collect(Collectors.toList());
-                System.out.println(names);
+                List<Player> players = allPlayers.stream().map(element -> new Player(element.attr("data-player-commom"),
+                                getTypeByClassName(element.className()), getRarityByClassName(element.className())))
+                        .collect(Collectors.toList());
+                players.forEach(System.out::println);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
     }
 
+
+
+    private Type getTypeByClassName(String className){
+        List<String> classes = List.of(className.trim().split("\\s+"));
+        Optional<Type> typeName = Stream.of(Type.values()).filter(type -> classes.contains(type.getType())).findFirst();
+        return typeName.get();
+    }
+
+    private Rarity getRarityByClassName(String className){
+        List<String> classes = List.of(className.trim().split("\\s+"));
+        Optional<Rarity> typeName = Stream.of(Rarity.values()).filter(type -> classes.contains(type.getRarity())).findFirst();
+        return typeName.get();
+    }
 }
