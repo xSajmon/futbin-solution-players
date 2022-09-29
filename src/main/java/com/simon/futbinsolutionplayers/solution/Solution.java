@@ -12,14 +12,14 @@ public class Solution {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String solutionUrl;
-
+    private String name;
+    private String cheepest;
     public Solution() {
 
     }
-
-    public Solution(Long id, String solutionUrl) {
-        this.id = id;
+    public Solution(String solutionUrl, String name) {
         this.solutionUrl = solutionUrl;
+        this.name = name;
     }
 
     public Long getId() {
@@ -36,5 +36,21 @@ public class Solution {
 
     public void setSolutionUrl(String solutionUrl) {
         this.solutionUrl = solutionUrl;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCheepest() {
+        return cheepest;
+    }
+
+    public void setCheepest(String cheepest) {
+        this.cheepest = cheepest;
     }
 }
