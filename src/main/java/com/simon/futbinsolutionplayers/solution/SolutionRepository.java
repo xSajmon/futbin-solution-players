@@ -12,4 +12,5 @@ public interface SolutionRepository extends CrudRepository<Solution, Long> {
 
     @Override
     Set<Solution> findAll();
+    Solution findByName(String name);
 }
