@@ -6,6 +6,7 @@ import com.simon.futbinsolutionplayers.player.Rarity;
 import com.simon.futbinsolutionplayers.player.Type;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -46,12 +47,21 @@ public class SolutionServiceImpl implements SolutionService {
                         .userAgent("Mozilla/5.0")
                         .get();
                 Elements cheapestSquad = document.select(".thead_des + tr");
+                Elements secondSquad = cheapestSquad.next();
                 String cheapestSquadUrl = cheapestSquad.select(".squad_url").attr("href");
-                if (solution.getCheapest() == null || !solution.getCheapest().equals(FUTBIN + cheapestSquadUrl)) {
-                    solution.setCheapest(FUTBIN + cheapestSquadUrl);
+                int difference = getSolutionPriceFromColumns(cheapestSquad) - getSolutionPriceFromColumns(secondSquad);
+                System.out.println(difference);
+                Optional<String>  currentCheapestSolution = Optional.ofNullable(solution.getCheapest());
+                currentCheapestSolution.ifPresentOrElse(x -> {
+                    if (!x.equals(FUTBIN + cheapestSquadUrl) && difference < 0) {
+                        setSolutionAsCheapest(solution, cheapestSquadUrl);
+                        cheapestSolutionList.add(solution);
+                    }
+                }, () -> {
+                    setSolutionAsCheapest(solution, cheapestSquadUrl);
                     cheapestSolutionList.add(solution);
-                }
-                repository.save(solution);
+                } );
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -59,6 +69,14 @@ public class SolutionServiceImpl implements SolutionService {
         return cheapestSolutionList;
     }
 
+    public int getSolutionPriceFromColumns(Elements element){
+        return Integer.parseInt(element.select("td").get(6).text().replace(",", ""));
+    }
+
+    void setSolutionAsCheapest(Solution solution, String url){
+        solution.setCheapest(FUTBIN + url);
+        addToDatabase(solution);
+    }
     private Map<String, List<Player>> getNonRarePlayers() {
         Map<String, List<Player>> solutionMap = new HashMap<>();
         extractLinksToTheCheapestSbc().forEach(solution -> {
@@ -100,35 +118,30 @@ public class SolutionServiceImpl implements SolutionService {
             v.forEach(System.out::println);
             System.out.println();
 
-            try {
-                readMap().get(k).forEach((name, count) -> {
-                    System.out.println(name + ": " + count);
-                });
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+            readMap().get(k).forEach((name, count) -> {
+                System.out.println(name + ": " + count);
+            });
             System.out.println();
 
         });
     }
 
-    @Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 30000)
     public void scrapData() throws IOException {
+        if(!new File("sbc").exists()){
+            writeMapToFile(Map.of());
+        }
         displayResult();
     }
 
 
     public void countPlayers(Map<String, List<Player>> aMap) throws IOException, ClassNotFoundException {
         Map<String, Map<String, Integer>> finalMap = new HashMap<>(readMap());
-
         aMap.forEach((k, v) -> {
             Map<String, Integer> playersCount = finalMap.getOrDefault(k, new HashMap<>());
             v.forEach(player -> {
-                if (!playersCount.containsKey(player.getName())) {
-                    playersCount.put(player.getName(), 1);
-                } else {
-                    playersCount.put(player.getName(), playersCount.get(player.getName())+1);
-                }
+                playersCount.computeIfPresent(player.getName(), (name, count) -> count+1);
+                playersCount.putIfAbsent(player.getName(), 1);
             });
             finalMap.put(k, playersCount);
             try {
@@ -148,13 +161,16 @@ public class SolutionServiceImpl implements SolutionService {
         s.close();
     }
 
-    private Map<String, Map<String, Integer>> readMap() throws IOException, ClassNotFoundException {
+    private Map<String, Map<String, Integer>> readMap(){
         File file = new File("sbc");
-        FileInputStream f = new FileInputStream(file);
-        ObjectInputStream s = new ObjectInputStream(f);
-        Map<String, Map<String, Integer>> obj = (Map<String, Map<String, Integer>>)  s.readObject();
-        s.close();
-        return obj;
-
+        try{
+            FileInputStream f = new FileInputStream(file);
+            ObjectInputStream s = new ObjectInputStream(f);
+            Map<String, Map<String, Integer>> obj = (Map<String, Map<String, Integer>>)  s.readObject();
+            s.close();
+            return obj;
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
