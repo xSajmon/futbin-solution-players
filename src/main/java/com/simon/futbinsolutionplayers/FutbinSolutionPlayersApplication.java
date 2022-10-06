@@ -1,7 +1,6 @@
 package com.simon.futbinsolutionplayers;
 
-import com.simon.futbinsolutionplayers.solution.Solution;
-import com.simon.futbinsolutionplayers.solution.SolutionRepository;
+import com.simon.futbinsolutionplayers.solution.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,7 +20,6 @@ public class FutbinSolutionPlayersApplication {
     @Bean
     CommandLineRunner initData(SolutionRepository repository){
         return args -> {
-
             List<Solution> solutions = List.of(
                     new Solution("https://www.futbin.com/squad-building-challenges/ALL/20/first-xi?page=1&lowest=pc", "FIRST XI"),
                     new Solution("https://www.futbin.com/squad-building-challenges/ALL/24/around-the-world?page=1&lowest=pc", "Around The World"),

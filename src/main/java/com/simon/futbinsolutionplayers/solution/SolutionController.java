@@ -8,20 +8,20 @@ import java.util.Set;
 @RequestMapping("solution")
 public class SolutionController {
 
-    private SolutionService solutionService;
+    private final SolutionDatabaseService solutionDatabaseService;
 
-    public SolutionController(SolutionService solutionService) {
-        this.solutionService = solutionService;
+    public SolutionController(SolutionDatabaseService solutionDatabaseService) {
+        this.solutionDatabaseService = solutionDatabaseService;
     }
 
     @GetMapping
     public Set<Solution> getSolutions(){
-        return solutionService.getSolutions();
+        return solutionDatabaseService.getSolutions();
     }
 
     @PostMapping
     public void saveSolution(@RequestBody Solution solution){
-        solutionService.addToDatabase(solution);
+        solutionDatabaseService.addToDatabase(solution);
     }
 
 }
